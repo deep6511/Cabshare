@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% set ride = group.rides[0] %} <h2>
+        Chat for Ride: {{ ride.origin_text.title() }} to {{ ride.destination_text.title() }}
+    </h2>
+    <p>
+        <strong>When:</strong> {{ ride.travel_datetime.strftime('%Y-%m-%d %I:%M %p') }}
+    </p>
+
+    <hr>
+
+    <h3>Group Members</h3>
+    <p>You can use this chat to coordinate. <strong>Never share your phone number here.</strong> Decide on a meeting spot and cab details.</p>
+    <ul>
+        <li>
+            {{ current_user.username }} (You)
+            - ({{ current_user.gender.title() }}, {{ current_user.college_year }} Year)
+        </li>
+        {% for member in members %}
+            <li>
+                {{ member.username }}
+                - ({{ member.gender.title() }}, {{ member.college_year }} Year)
+            </li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <h3>Group Chat</h3>
+    <div class="chat-box">
+        {% for message in group.messages %}
+            <div class="message-card">
+                <strong>{{ message.user.username }}</strong>
+                <small>({{ message.timestamp.strftime('%Y-%m-%d %I:%M %p') }})</small>
+                <p>{{ message.text }}</p>
+            </div>
+        {% else %}
+            <p>No messages yet. Say hello!</p>
+        {% endfor %}
+    </div>
+
+    <hr>
+
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.text.label }}<br>
+            {{ form.text(placeholder="Type your message...") }}
+        </div>
+        <br>
+        <div>
+            {{ form.submit(class="btn") }}
+        </div>
+    </form>
+
+{% endblock %}

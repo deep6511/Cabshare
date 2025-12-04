@@ -1,0 +1,49 @@
+<!-- templates/index.html -->
+<!doctype html>
+<html>
+<head>
+  <title>College Cab Share - Submit Ride</title>
+</head>
+<body>
+  <h1>Submit a Ride</h1>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul>
+      {% for m in messages %}
+        <li>{{ m }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+  <form action="{{ url_for('submit') }}" method="post">
+    <label>Name (display only to you): <input name="name"></label><br>
+    <label>Phone (stored, not shown): <input name="phone"></label><br>
+    <label>Your gender (used for preference):
+      <select name="gender">
+        <option value="any">Prefer not to say</option>
+        <option value="female">Female</option>
+        <option value="male">Male</option>
+      </select>
+    </label><br>
+    <label>Year (1/2/3/4): <input name="year"></label><br>
+    <label>Origin city: <input name="origin" required></label><br>
+    <label>Destination city: <input name="destination" required></label><br>
+    <label>Intermediate stops (optional, semicolon-separated, e.g. Chennai;Vellore): <input name="intermediates"></label><br>
+    <label>Date: <input type="date" name="date" required></label><br>
+    <label>Time: <input type="time" name="time" required></label><br>
+    <label>Preferred passenger gender:
+      <select name="gender_pref">
+        <option value="any">Any</option>
+        <option value="female">Only Females</option>
+        <option value="male">Only Males</option>
+      </select>
+    </label><br>
+    <label>Preferred year(s) (comma separated or 'any'): <input name="year_pref" value="any"></label><br>
+    <button type="submit">Submit Ride</button>
+  </form>
+
+  <hr>
+  <h3>Developer / Admin</h3>
+  <p>List sample rides: <a href="/api/list_rides">/api/list_rides</a></p>
+</body>
+</html>

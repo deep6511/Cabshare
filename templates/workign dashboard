@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Welcome, {{ current_user.username }}!</h2>
+<hr>
+
+<h3>Request a New Ride</h3>
+<form method="POST" action="{{ url_for('dashboard') }}">
+    {{ form.hidden_tag() }}
+
+    <!-- ORIGIN FIELD -->
+    <div>
+        {{ form.origin.label }}<br>
+        <input type="text"
+               id="origin"
+               name="origin"
+               onkeyup="autocompleteOrigin()" />
+        <div id="origin_results"></div>
+    </div>
+
+    <!-- DESTINATION FIELD -->
+    <div>
+        {{ form.destination.label }}<br>
+        <input type="text"
+               id="destination"
+               name="destination"
+               onkeyup="autocompleteDestination()" />
+        <div id="destination_results"></div>
+    </div>
+
+    <!-- DATETIME -->
+    <div>
+        {{ form.travel_datetime.label }}<br>
+        {{ form.travel_datetime() }}
+    </div>
+
+    <!-- PREFERENCE -->
+    <div>
+        {{ form.preference.label }}<br>
+        {{ form.preference() }}
+    </div>
+
+    <br>
+    <div>
+        {{ form.submit(class="btn") }}
+    </div>
+</form>
+
+<hr style="margin-top: 30px;">
+
+<h3>My Pending (Unmatched) Rides</h3>
+
+{% if pending_rides %}
+    {% for ride in pending_rides %}
+        <div class="ride-card">
+            <strong>From:</strong> {{ ride.origin.title() }}<br>
+            <strong>To:</strong> {{ ride.destination.title() }}<br>
+            <strong>At:</strong> {{ ride.travel_datetime.strftime('%Y-%m-%d %I:%M %p') }}<br>
+            <strong>Preference:</strong> {{ ride.preference.replace('_', ' ').title() }}
+        </div>
+    {% endfor %}
+{% else %}
+    <p>You have no pending ride requests.</p>
+{% endif %}
+
+<!-- ================================
+     AUTOCOMPLETE JAVASCRIPT
+================================ -->
+<script>
+function autocompleteOrigin() {
+    let query = document.getElementById("origin").value;
+
+    if (query.length < 2) {
+        document.getElementById("origin_results").innerHTML = "";
+        return;
+    }
+
+    fetch(`/autocomplete?q=${query}`)
+        .then(res => res.json())
+        .then(data => {
+            console.log("Origin autocomplete:", data);
+            let box = document.getElementById("origin_results");
+            box.innerHTML = "";
+
+            data.results.forEach(item => {
+                let div = document.createElement("div");
+                div.className = "suggestion-item";
+                div.innerText = item.label;
+
+                div.onclick = () => {
+                    document.getElementById("origin").value = item.label;
+                    box.innerHTML = "";
+                };
+
+                box.appendChild(div);
+            });
+        })
+        .catch(err => console.error(err));
+}
+
+function autocompleteDestination() {
+    let query = document.getElementById("destination").value;
+
+    if (query.length < 2) {
+        document.getElementById("destination_results").innerHTML = "";
+        return;
+    }
+
+    fetch(`/autocomplete?q=${query}`)
+        .then(res => res.json())
+        .then(data => {
+            console.log("Destination autocomplete:", data);
+            let box = document.getElementById("destination_results");
+            box.innerHTML = "";
+
+            data.results.forEach(item => {
+                let div = document.createElement("div");
+                div.className = "suggestion-item";
+                div.innerText = item.label;
+
+                div.onclick = () => {
+                    document.getElementById("destination").value = item.label;
+                    box.innerHTML = "";
+                };
+
+                box.appendChild(div);
+            });
+        })
+        .catch(err => console.error(err));
+}
+</script>
+
+<!-- SUGGESTION STYLE -->
+<style>
+    #origin_results, #destination_results {
+        background: #f8f8f8;
+        border: 1px solid #ccc;
+        position: absolute;
+        width: 90%;
+        z-index: 100;
+    }
+
+    .suggestion-item {
+        padding: 8px;
+        cursor: pointer;
+    }
+    .suggestion-item:hover {
+        background: #ddd;
+    }
+</style>
+
+{% endblock %}

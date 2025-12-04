@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Welcome, {{ current_user.username }}!</h2>
+<hr>
+
+<h3>Request a New Ride</h3>
+<form method="POST" action="{{ url_for('dashboard') }}" id="rideForm">
+    {{ form.hidden_tag() }}
+
+    <!-- ORIGIN FIELD -->
+    <div style="position: relative; margin-bottom: 20px;">
+        {{ form.origin.label }}<br>
+        <input type="text"
+               id="origin"
+               name="origin"
+               onkeyup="autocompleteOrigin()"
+               autocomplete="off"
+               required
+               style="width: 100%; padding: 8px; box-sizing: border-box;" />
+        <!-- Hidden fields to store coordinates -->
+        <input type="hidden" id="origin_lat" name="origin_lat" required />
+        <input type="hidden" id="origin_lon" name="origin_lon" required />
+        <div id="origin_results"></div>
+    </div>
+
+    <!-- DESTINATION FIELD -->
+    <div style="position: relative; margin-bottom: 20px;">
+        {{ form.destination.label }}<br>
+        <input type="text"
+               id="destination"
+               name="destination"
+               onkeyup="autocompleteDestination()"
+               autocomplete="off"
+               required
+               style="width: 100%; padding: 8px; box-sizing: border-box;" />
+        <!-- Hidden fields to store coordinates -->
+        <input type="hidden" id="destination_lat" name="destination_lat" required />
+        <input type="hidden" id="destination_lon" name="destination_lon" required />
+        <div id="destination_results"></div>
+    </div>
+
+    <!-- DATETIME -->
+    <div style="margin-bottom: 20px;">
+        {{ form.travel_datetime.label }}<br>
+        {{ form.travel_datetime() }}
+    </div>
+
+    <!-- PREFERENCE -->
+    <div style="margin-bottom: 20px;">
+        {{ form.preference.label }}<br>
+        {{ form.preference() }}
+    </div>
+
+    <br>
+    <div>
+        {{ form.submit(class="btn") }}
+    </div>
+</form>
+
+<hr style="margin-top: 30px;">
+
+<h3>My Pending (Unmatched) Rides</h3>
+
+{% if pending_rides %}
+    {% for ride in pending_rides %}
+        <div class="ride-card">
+            <strong>From:</strong> {{ ride.origin_text.title() }}<br>
+            <strong>To:</strong> {{ ride.destination_text.title() }}<br>
+            <strong>At:</strong> {{ ride.travel_datetime.strftime('%Y-%m-%d %I:%M %p') }}<br>
+            <strong>Preference:</strong> {{ ride.preference.replace('_', ' ').title() }}
+        </div>
+    {% endfor %}
+{% else %}
+    <p>You have no pending ride requests.</p>
+{% endif %}
+
+<!-- ================================
+     AUTOCOMPLETE JAVASCRIPT
+================================ -->
+<script>
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#origin') && !e.target.closest('#destination') &&
+        !e.target.closest('#origin_results') && !e.target.closest('#destination_results')) {
+        document.getElementById("origin_results").innerHTML = "";
+        document.getElementById("destination_results").innerHTML = "";
+    }
+});
+
+function autocompleteOrigin() {
+    let query = document.getElementById("origin").value;
+
+    if (query.length < 2) {
+        document.getElementById("origin_results").innerHTML = "";
+        return;
+    }
+
+    fetch(`/autocomplete?q=${query}`)
+        .then(res => res.json())
+        .then(data => {
+            console.log("Origin autocomplete:", data);
+            let box = document.getElementById("origin_results");
+            box.innerHTML = "";
+
+            if (data.results && data.results.length > 0) {
+                data.results.forEach(item => {
+                    let div = document.createElement("div");
+                    div.className = "suggestion-item";
+                    div.innerText = item.label;
+
+                    div.onclick = (e) => {
+                        e.stopPropagation();
+                        // Store BOTH the label AND coordinates
+                        const originInput = document.getElementById("origin");
+                        const originLat = document.getElementById("origin_lat");
+                        const originLon = document.getElementById("origin_lon");
+
+                        originInput.value = item.label;
+                        originLat.value = item.lat;
+                        originLon.value = item.lon;
+
+                        box.innerHTML = "";
+                        console.log("✅ Selected origin:", item.label, "Lat:", item.lat, "Lon:", item.lon);
+                        console.log("✅ Hidden field values:", originLat.value, originLon.value);
+                    };
+
+                    box.appendChild(div);
+                });
+            }
+        })
+        .catch(err => console.error(err));
+}
+
+function autocompleteDestination() {
+    let query = document.getElementById("destination").value;
+
+    if (query.length < 2) {
+        document.getElementById("destination_results").innerHTML = "";
+        return;
+    }
+
+    fetch(`/autocomplete?q=${query}`)
+        .then(res => res.json())
+        .then(data => {
+            console.log("Destination autocomplete:", data);
+            let box = document.getElementById("destination_results");
+            box.innerHTML = "";
+
+            if (data.results && data.results.length > 0) {
+                data.results.forEach(item => {
+                    let div = document.createElement("div");
+                    div.className = "suggestion-item";
+                    div.innerText = item.label;
+
+                    div.onclick = (e) => {
+                        e.stopPropagation();
+                        // Store BOTH the label AND coordinates
+                        const destInput = document.getElementById("destination");
+                        const destLat = document.getElementById("destination_lat");
+                        const destLon = document.getElementById("destination_lon");
+
+                        destInput.value = item.label;
+                        destLat.value = item.lat;
+                        destLon.value = item.lon;
+
+                        box.innerHTML = "";
+                        console.log("✅ Selected destination:", item.label, "Lat:", item.lat, "Lon:", item.lon);
+                        console.log("✅ Hidden field values:", destLat.value, destLon.value);
+                    };
+
+                    box.appendChild(div);
+                });
+            }
+        })
+        .catch(err => console.error(err));
+}
+</script>
+
+<!-- SUGGESTION STYLE -->
+<style>
+    /* Parent containers need relative positioning */
+    form > div {
+        position: relative;
+    }
+
+    #origin_results, #destination_results {
+        background: white;
+        border: 1px solid #ddd;
+        position: absolute;
+        width: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 1000;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        border-radius: 0 0 4px 4px;
+        top: 100%; /* Position right below the input */
+        left: 0;
+    }
+
+    /* Remove border if empty */
+    #origin_results:empty, #destination_results:empty {
+        border: none;
+        box-shadow: none;
+    }
+
+    .suggestion-item {
+        padding: 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.2s;
+    }
+
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+
+    .suggestion-item:hover {
+        background: #f5f5f5;
+    }
+</style>
+
+{% endblock %}

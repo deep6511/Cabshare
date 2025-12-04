@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Register</h2>
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.username.label }}<br>
+            {{ form.username() }}
+        </div>
+        <div>
+            {{ form.password.label }}<br>
+            {{ form.password() }}
+        </div>
+        <div>
+            {{ form.confirm_password.label }}<br>
+            {{ form.confirm_password() }}
+        </div>
+        <div>
+            {{ form.phone_number.label }}<br>
+            {{ form.phone_number() }}
+        </div>
+        <div>
+            {{ form.gender.label }}<br>
+            {{ form.gender() }}
+        </div>
+        <div>
+            {{ form.college_year.label }}<br>
+            {{ form.college_year() }}
+        </div>
+        <br>
+        <div>
+            {{ form.submit(class="btn") }}
+        </div>
+    </form>
+{% endblock %}

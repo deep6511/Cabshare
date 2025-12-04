@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>My Matches</h2>
+
+    {% if groups %}
+        {% for group in groups %}
+            <div class="group-card">
+                {% set ride = group.rides[0] %} <h4>
+                    Ride: {{ ride.origin_text.title() }} to {{ ride.destination_text.title() }}
+                </h4>
+                <p>
+                    <strong>When:</strong> {{ ride.travel_datetime.strftime('%Y-%m-%d %I:%M %p') }}
+                </p>
+                <a href="{{ url_for('match_group', group_id=group.id) }}" class="btn">
+                    View Group Chat ({{ group.messages|length }} messages)
+                </a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>You have no matches yet. Submit a ride request!</p>
+    {% endif %}
+
+{% endblock %}

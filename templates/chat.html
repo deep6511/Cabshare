@@ -1,0 +1,20 @@
+<!-- templates/chat.html -->
+<!doctype html>
+<html>
+<head><title>Chat</title></head>
+<body>
+  <h1>Chat (Match {{ match['id'] }})</h1>
+  <div style="border:1px solid #ccc; padding:10px; height:300px; overflow:auto;">
+    {% for msg in messages %}
+      <div><strong>{{ msg['sender_ride_id'] }}</strong>: {{ msg['message'] }} <small>{{ msg['timestamp'] }}</small></div>
+    {% endfor %}
+  </div>
+  <form action="{{ url_for('send_message') }}" method="post">
+    <input type="hidden" name="match_id" value="{{ match['id'] }}">
+    <input type="hidden" name="sender_ride_id" value="{{ ride_id }}">
+    <input name="message" placeholder="Type message" style="width:60%">
+    <button type="submit">Send</button>
+  </form>
+  <p><a href="{{ url_for('index') }}">Back</a></p>
+</body>
+</html>
